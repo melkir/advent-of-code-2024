@@ -1,26 +1,19 @@
 use aoc_runner_derive::{aoc, aoc_generator};
+use regex::Regex;
+
 #[aoc_generator(day3)]
+
 fn parse(input: &str) -> Vec<(u32, u32)> {
-    input
-        .split(')')
-        .filter_map(|s| {
-            if let Some(mul_part) = s.split("mul(").last() {
-                let nums: Vec<u32> = mul_part.split(',').filter_map(|n| n.parse().ok()).collect();
-                if nums.len() == 2 {
-                    Some((nums[0], nums[1]))
-                } else {
-                    None
-                }
-            } else {
-                None
-            }
-        })
+    let re = Regex::new(r"mul\((\d+),(\d+)\)").unwrap();
+    re.captures_iter(input)
+        .filter_map(|cap| Some((cap[1].parse().ok()?, cap[2].parse().ok()?)))
         .collect()
 }
 
 #[aoc(day3, part1)]
 fn part1(input: &Vec<(u32, u32)>) -> u32 {
-    todo!()
+    let sum: u32 = input.iter().map(|(a, b)| a * b).sum();
+    sum
 }
 
 #[aoc(day3, part2)]
@@ -47,9 +40,15 @@ mod tests {
     }
 
     #[test]
+    fn part1_example_parse() {
+        let input = std::fs::read_to_string("input/2024/day3.txt").expect("Failed to read file");
+        assert_eq!(parse(&input).len(), 692);
+    }
+
+    #[test]
     fn part1_example() {
         let input = std::fs::read_to_string("input/2024/day3.txt").expect("Failed to read file");
-        assert_eq!(part1(&parse(&input)), 0);
+        assert_eq!(part1(&parse(&input)), 175615763);
     }
 
     #[test]
