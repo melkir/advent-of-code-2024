@@ -11,7 +11,25 @@ fn parse(input: &str) -> Vec<(u32, u32)> {
 
 #[aoc_generator(day3, part2)]
 fn parse_instruction(input: &str) -> Vec<(u32, u32)> {
-    todo!()
+    let re = Regex::new(r"(do\(\))|(don't\(\))|mul\((\d+),(\d+)\)").unwrap();
+
+    let mut enabled = true;
+    let mut extracted = Vec::new();
+
+    for cap in re.captures_iter(input) {
+        match (cap.get(1), cap.get(2), cap.get(3)) {
+            (Some(_), _, _) => enabled = true,
+            (_, Some(_), _) => enabled = false,
+            (_, _, Some(_)) if enabled => {
+                let l = cap[3].parse::<u32>().unwrap();
+                let r = cap[4].parse::<u32>().unwrap();
+                extracted.push((l, r));
+            }
+            _ => {}
+        }
+    }
+
+    extracted
 }
 
 #[aoc(day3, part1)]
@@ -73,6 +91,6 @@ mod tests {
     #[test]
     fn part2_example() {
         let input = std::fs::read_to_string("input/2024/day3.txt").expect("Failed to read file");
-        assert_eq!(part2(&parse_instruction(&input)), 0);
+        assert_eq!(part2(&parse_instruction(&input)), 74361272);
     }
 }
