@@ -2,31 +2,7 @@ use aoc_runner_derive::{aoc, aoc_generator};
 
 #[aoc_generator(day4)]
 fn parse(input: &str) -> Vec<Vec<char>> {
-    input
-        .lines()
-        .filter(|line| !line.is_empty())
-        .map(|line| line.chars().collect())
-        .collect()
-}
-
-fn check_direction(grid: &[Vec<char>], row: i32, col: i32, row_dir: i32, col_dir: i32) -> bool {
-    let word = "XMAS";
-    let rows = grid.len() as i32;
-    let cols = grid[0].len() as i32;
-
-    for (i, expected_char) in word.chars().enumerate() {
-        let new_row = row + (i as i32 * row_dir);
-        let new_col = col + (i as i32 * col_dir);
-
-        if new_row < 0 || new_row >= rows || new_col < 0 || new_col >= cols {
-            return false;
-        }
-
-        if grid[new_row as usize][new_col as usize] != expected_char {
-            return false;
-        }
-    }
-    true
+    input.lines().map(|line| line.chars().collect()).collect()
 }
 
 #[aoc(day4, part1)]
@@ -35,22 +11,74 @@ fn part1(grid: &[Vec<char>]) -> u32 {
     let cols = grid[0].len();
     let mut count = 0;
 
-    // Define all possible directions (including diagonals)
-    let directions = [
-        (-1, -1),
-        (-1, 0),
-        (-1, 1),
-        (0, -1),
-        (0, 1),
-        (1, -1),
-        (1, 0),
-        (1, 1),
-    ];
-
     for row in 0..rows {
         for col in 0..cols {
-            for &(row_dir, col_dir) in &directions {
-                if check_direction(grid, row as i32, col as i32, row_dir, col_dir) {
+            if grid[row][col] == 'X' {
+                if col + 3 < cols
+                    && grid[row][col + 1] == 'M'
+                    && grid[row][col + 2] == 'A'
+                    && grid[row][col + 3] == 'S'
+                {
+                    count += 1;
+                }
+
+                if col >= 3
+                    && grid[row][col - 1] == 'M'
+                    && grid[row][col - 2] == 'A'
+                    && grid[row][col - 3] == 'S'
+                {
+                    count += 1;
+                }
+
+                if row + 3 < rows
+                    && grid[row + 1][col] == 'M'
+                    && grid[row + 2][col] == 'A'
+                    && grid[row + 3][col] == 'S'
+                {
+                    count += 1;
+                }
+
+                if row >= 3
+                    && grid[row - 1][col] == 'M'
+                    && grid[row - 2][col] == 'A'
+                    && grid[row - 3][col] == 'S'
+                {
+                    count += 1;
+                }
+
+                if row + 3 < rows
+                    && col + 3 < cols
+                    && grid[row + 1][col + 1] == 'M'
+                    && grid[row + 2][col + 2] == 'A'
+                    && grid[row + 3][col + 3] == 'S'
+                {
+                    count += 1;
+                }
+
+                if row >= 3
+                    && col >= 3
+                    && grid[row - 1][col - 1] == 'M'
+                    && grid[row - 2][col - 2] == 'A'
+                    && grid[row - 3][col - 3] == 'S'
+                {
+                    count += 1;
+                }
+
+                if row + 3 < rows
+                    && col >= 3
+                    && grid[row + 1][col - 1] == 'M'
+                    && grid[row + 2][col - 2] == 'A'
+                    && grid[row + 3][col - 3] == 'S'
+                {
+                    count += 1;
+                }
+
+                if row >= 3
+                    && col + 3 < cols
+                    && grid[row - 1][col + 1] == 'M'
+                    && grid[row - 2][col + 2] == 'A'
+                    && grid[row - 3][col + 3] == 'S'
+                {
                     count += 1;
                 }
             }
