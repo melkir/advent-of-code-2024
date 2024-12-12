@@ -88,9 +88,34 @@ fn part1(grid: &[Vec<char>]) -> u32 {
     count
 }
 
+fn is_valid_diagonal(a: char, b: char) -> bool {
+    (a == 'S' && b == 'M') || (a == 'M' && b == 'S')
+}
+
 #[aoc(day4, part2)]
-fn part2(input: &[Vec<char>]) -> u32 {
-    todo!()
+fn part2(grid: &[Vec<char>]) -> u32 {
+    let rows = grid.len();
+    let cols = grid[0].len();
+    let mut count = 0;
+
+    for row in 1..rows - 1 {
+        for col in 1..cols - 1 {
+            if grid[row][col] == 'A' {
+                let top_left = grid[row - 1][col - 1];
+                let top_right = grid[row - 1][col + 1];
+                let bottom_left = grid[row + 1][col - 1];
+                let bottom_right = grid[row + 1][col + 1];
+
+                if is_valid_diagonal(top_left, bottom_right)
+                    && is_valid_diagonal(top_right, bottom_left)
+                {
+                    count += 1;
+                }
+            }
+        }
+    }
+
+    count
 }
 
 #[cfg(test)]
@@ -110,8 +135,14 @@ mod tests {
     }
 
     #[test]
+    fn part2_sample() {
+        let input = std::fs::read_to_string("input/2024/sample4.txt").expect("Failed to read file");
+        assert_eq!(part2(&parse(&input)), 9);
+    }
+
+    #[test]
     fn part2_example() {
         let input = std::fs::read_to_string("input/2024/day4.txt").expect("Failed to read file");
-        assert_eq!(part1(&parse(&input)), u32::MAX);
+        assert_eq!(part2(&parse(&input)), 1890);
     }
 }
