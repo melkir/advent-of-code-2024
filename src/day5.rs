@@ -1,55 +1,86 @@
 use aoc_runner_derive::{aoc, aoc_generator};
+use std::collections::HashMap;
+
 #[aoc_generator(day5)]
-fn parse(input: &str) -> String {
-    // The input have two sections.
-    // The first section specifies the page ordering rules, one per line. The first rule, 47|53, means that if an update includes both page number 47 and page number 53, then page number 47 must be printed at some point before page number 53.
-    // The second section specifies the page numbers of each update. Because most safety manuals are different, the pages needed in the updates are different too. The first update, 75,47,61,53,29, means that the update consists of page numbers 75, 47, 61, 53, and 29.
-
-    // Implement a code that read the input to retrieve the first and store them into a list
-    // For example: 47|53, 97|13, 97|61 becomes {47 -> 53, 97 -> 13, 61}
-
-    // First, let's split the input into two sections: rules and update pages.
+fn parse(input: &str) -> (HashMap<(u32, u32), bool>, Vec<Vec<u32>>) {
     let parts: Vec<&str> = input.split("\n\n").collect();
     let rules_section = parts[0];
     let updates_section = parts[1];
-    // Parse rules and store them into a dictionary (key, list of values).
-    let mut rules_before: std::collections::HashMap<u32, Vec<u32>> =
-        std::collections::HashMap::new();
-    let mut rules_after: std::collections::HashMap<u32, Vec<u32>> =
-        std::collections::HashMap::new();
-    for rule in rules_section.lines() {
-        let numbers: Vec<u32> = rule.split("|").map(|s| s.trim().parse().unwrap()).collect();
-        let first = numbers[0];
-        let second = numbers[1];
-        rules_before
-            .entry(first)
-            .or_insert_with(Vec::new)
-            .push(second);
-        rules_after
-            .entry(second)
-            .or_insert_with(Vec::new)
-            .push(first);
-    }
-    // Parse update pages and store them into a vector for each line.
-    let updates: Vec<Vec<u32>> = updates_section
+
+    // Parse updates
+    let updates = updates_section
         .lines()
-        .map(|s| s.split(",").map(|s| s.trim().parse().unwrap()).collect())
+        .map(|line| line.split(',').map(|s| s.trim().parse().unwrap()).collect())
         .collect();
 
-    println!("{:?}", rules_before);
-    println!("{:?}", rules_after);
-    println!("{:?}", updates);
-    todo!()
+    let mut rules: HashMap<(u32, u32), bool> = HashMap::new();
+    for rule in rules_section.lines() {
+        let numbers: Vec<u32> = rule.split('|').map(|s| s.trim().parse().unwrap()).collect();
+        let (before, after) = (numbers[0], numbers[1]);
+        rules.insert((before, after), true);
+    }
+
+    (rules, updates)
+}
+
+// Function to check if an update is in correct order
+fn is_valid_order(update: &[u32], rules: &HashMap<(u32, u32), bool>) -> bool {
+    // For each pair of pages in the update
+    for i in 0..update.len() {
+        for j in i + 1..update.len() {
+            let earlier_page = update[i];
+            let later_page = update[j];
+
+            // If there's a rule saying later_page should come before earlier_page,
+            // this order is invalid
+            if rules.contains_key(&(later_page, earlier_page)) {
+                return false;
+            }
+        }
+    }
+    true
+}
+
+// Function to sort an update according to rules
+fn sort_update(update: &[u32], rules: &HashMap<(u32, u32), bool>) -> Vec<u32> {
+    let mut sorted = update.to_vec();
+    sorted.sort_by(|&a, &b| {
+        if rules.contains_key(&(a, b)) {
+            std::cmp::Ordering::Less
+        } else if rules.contains_key(&(b, a)) {
+            std::cmp::Ordering::Greater
+        } else {
+            b.cmp(&a) // Default to descending order if no rule exists
+        }
+    });
+    sorted
 }
 
 #[aoc(day5, part1)]
-fn part1(input: &str) -> u32 {
-    todo!()
+fn part1(input: &(HashMap<(u32, u32), bool>, Vec<Vec<u32>>)) -> u32 {
+    let (rules, updates) = input;
+
+    let mut sum = 0;
+    for update in updates {
+        if is_valid_order(update, &rules) {
+            sum += update[update.len() / 2];
+        }
+    }
+    sum
 }
 
 #[aoc(day5, part2)]
-fn part2(input: &str) -> u32 {
-    todo!()
+fn part2(input: &(HashMap<(u32, u32), bool>, Vec<Vec<u32>>)) -> u32 {
+    let (rules, updates) = input;
+
+    let mut sum = 0;
+    for update in updates {
+        if !is_valid_order(update, &rules) {
+            let sorted = sort_update(update, &rules);
+            sum += sorted[sorted.len() / 2];
+        }
+    }
+    sum
 }
 
 #[cfg(test)]
@@ -64,11 +95,19 @@ mod tests {
 
     #[test]
     fn part1_example() {
-        assert_eq!(part1(&parse("<EXAMPLE>")), u32::MAX);
+        let input = std::fs::read_to_string("input/2024/day5.txt").expect("Failed to read file");
+        assert_eq!(part1(&parse(&input)), 4766);
+    }
+
+    #[test]
+    fn part2_sample() {
+        let input = std::fs::read_to_string("input/2024/sample5.txt").expect("Failed to read file");
+        assert_eq!(part2(&parse(&input)), 123);
     }
 
     #[test]
     fn part2_example() {
-        assert_eq!(part2(&parse("<EXAMPLE>")), u32::MAX);
+        let input = std::fs::read_to_string("input/2024/day5.txt").expect("Failed to read file");
+        assert_eq!(part2(&parse(&input)), 6257);
     }
 }
