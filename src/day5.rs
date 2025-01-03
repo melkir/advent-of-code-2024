@@ -73,6 +73,7 @@ fn part1((rules, updates): &Input) -> u32 {
         .map(|update| update[update.len() / 2])
         .sum()
 }
+
 #[aoc(day5, part2)]
 fn part2((rules, updates): &Input) -> u32 {
     let validator = PageOrderValidator::new(rules);
